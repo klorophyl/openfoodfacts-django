@@ -18,7 +18,7 @@ class AbstractOFFFood(models.Model):
         abstract = True
 
     # General information
-    code = models.TextField(default=None, null=True)
+    code = models.TextField(default=None, null=True, db_index=True)
     url = models.TextField(default=None, null=True)
     creator = models.TextField(default=None, null=True)
     created_t = models.IntegerField(default=None, null=True)
