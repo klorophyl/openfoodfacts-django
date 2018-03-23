@@ -2,11 +2,15 @@
 # _*_ coding: utf_8 _*_
 
 import datetime
+import logging
 
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 from .models_extensions import ListField
 from .utils import DATETIME_FORMAT
+
+logger = logging.getLogger("django")
 
 
 class AbstractOFFFood(models.Model):
@@ -84,6 +88,7 @@ class AbstractOFFFood(models.Model):
     pnns_groups_1 = models.TextField(default=None, null=True)
     pnns_groups_2 = models.TextField(default=None, null=True)
     serving_size = models.TextField(default=None, null=True)
+    serving_quantity = models.FloatField(default=None, null=True)
     states = ListField(default=None, null=True)
     states_en = ListField(default=None, null=True)
     states_tags = ListField(default=None, null=True)
@@ -205,7 +210,11 @@ class AbstractOFFFood(models.Model):
             django_field = field.replace("-", "_")
 
             value = (data.get(field) or "").strip()
-            field_class = cls._meta.get_field(django_field).__class__
+
+            try:
+                field_class = cls._meta.get_field(django_field).__class__
+            except FieldDoesNotExist:
+                logger.info("A field has been added in Open Food facts and not in off_django : %s" % field)
 
             if value == "":
                 value = None
