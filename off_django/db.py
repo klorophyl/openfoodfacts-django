@@ -3,6 +3,7 @@
 
 import csv
 import logging
+import os
 import sys
 import time
 
@@ -32,9 +33,9 @@ class DumpManager(object):
         logger.info("[openfoodfacts] - Starting dump download...")
         timestamp = time.time()
 
-        dump_file = download_file(self.DUMP_URL)
+        dump_file = download_file(self.DUMP_URL, "dump.csv")
 
-        logger.info("[openfoodfacts] - Dump downloaded in %s" % (time.time() - timestamp))
+        logger.info("[openfoodfacts] - Dump downloaded in %ss" % int(time.time() - timestamp))
 
         return dump_file
 
@@ -54,35 +55,37 @@ class DumpManager(object):
 
         # Download CSV
         try:
-            dump_file = self.download_dump()
+            dump_path = self.download_dump()
         except Exception as e:
             logger.error(e)
-            logger.error("[openfoodfacts] - An error occurred, please check that you have at least 2Go of RAM available")
+            logger.error("[openfoodfacts] - An error occurred during dump download")
+            return
 
-        entry_count = dump_file.read().count("\n")
-        dump_file.seek(0)
+        with open(dump_path, "rU") as dump_file:
+            entry_count = dump_file.read().count("\n")
+            dump_file.seek(0)
 
-        # Load custom model if it exists
-        model = OFFFood
-        if hasattr(settings, "OFF_MODEL"):
-            splitted = settings.OFF_MODEL.split(".")
-            model = get_model(".".join(splitted[:-1]), splitted[-1])
+            # Load custom model if it exists
+            model = OFFFood
+            if hasattr(settings, "OFF_MODEL"):
+                splitted = settings.OFF_MODEL.split(".")
+                model = get_model(".".join(splitted[:-1]), splitted[-1])
 
-        # Preload last_modified values
-        last_modified_map = dict(model.objects.all().values_list("code", "last_modified_t"))
+            # Preload last_modified values
+            last_modified_map = dict(model.objects.all().values_list("code", "last_modified_t"))
 
-        # Parse CSV
-        reader = self.get_csv_reader(dump_file)
-        iterator = tqdm(reader, total=entry_count, unit='it', unit_scale=True)
-        for entry in iterator:
-            code = entry.get("code", "")
-            if code == "":
-                continue
+            # Parse CSV
+            reader = self.get_csv_reader(dump_file)
+            iterator = tqdm(reader, total=entry_count, unit='it', unit_scale=True)
+            for entry in iterator:
+                code = entry.get("code", "")
+                if code == "":
+                    continue
 
-            saved_last_modified = last_modified_map.get(code)
-            if saved_last_modified is None:
-                model.load(entry, create=True)
-            elif int(entry.get("last_modified_t")) > saved_last_modified:
-                model.load(entry)
+                saved_last_modified = last_modified_map.get(code)
+                if saved_last_modified is None:
+                    model.load(entry, create=True)
+                elif int(entry.get("last_modified_t")) > saved_last_modified:
+                    model.load(entry)
 
-        dump_file.close()
+        os.remove(dump_path)

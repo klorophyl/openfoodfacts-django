@@ -50,7 +50,13 @@ INSTALLED_APPS = (
 )
 ```
 
-2) if needed, build a custom Open Food Facts food product model by inheriting from AbstractOFFFood [(see definition)](off_django/models.py) and add `OFF_MODEL` to your settings :
+2) add `OFF_TMP_FOLDER_PATH` to your settings, it is the path to a folder in which off_django can download Open Food Facts DB dump (~1.5Go). It will be removed once it has been loaded in your local DB.
+
+```
+OFF_TMP_FOLDER_PATH = 'my/path/to/off/tmp/folder'
+```
+
+3) if needed, build a custom Open Food Facts food product model by inheriting from AbstractOFFFood [(see definition)](off_django/models.py) and add `OFF_MODEL` to your settings :
 
 ```
 OFF_MODEL = 'your_custom_off_app.YOUR_CUSTOM_OFF_MODEL'
