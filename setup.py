@@ -16,7 +16,7 @@ packages = [
 
 requires = open('requirements.txt').read().split('\n')
 
-version = "0.2"
+version = "0.3"
 
 with open('README.md', 'r') as f:
     readme = f.read()
