@@ -37,6 +37,12 @@ cd openfoodfacts-django
 sudo python setup.py install
 ```
 
+### Dependencies
+
+`off_django` was developped under Python 2.7, Python 3 may work but is not currently supported.
+
+Installing` off_django` will install [openfoodfacts-python](https://github.com/openfoodfacts/openfoodfacts-python) as a dependency and use it as an API connector, check this repo for advanced API usage.
+
 ## Docs
 
 ### Django settings
@@ -91,6 +97,8 @@ from off_django.db import DumpManager
 dump_manager = DumpManager()
 objects = dump_manager.load_last_dump()  # will load last open food facts dump (~1.5Go) in your database
 ```
+
+
 ## Contributing
 
 The project is initially started by [Gabriel Samain](https://github.com/klorophyl)

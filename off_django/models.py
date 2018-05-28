@@ -8,7 +8,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 from .models_extensions import ListField
-from .utils import DATETIME_FORMAT
+from .settings import DATETIME_FORMAT
 
 logger = logging.getLogger("django")
 

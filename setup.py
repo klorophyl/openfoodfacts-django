@@ -14,9 +14,21 @@ packages = [
     'off_django',
 ]
 
-requires = open('requirements.txt').read().split('\n')
+install_requires = [
+    "requests==2.18.4",
+    "tqdm==4.19.6",
+    "django<2"      # Python 2.7
+]
 
-version = "0.3"
+dependency_links = [
+    "git+https://github.com/openfoodfacts/openfoodfacts-python"
+]
+
+tests_require = [
+    "mock==2.0.0"
+]
+
+version = "0.4"
 
 with open('README.md', 'r') as f:
     readme = f.read()
@@ -33,7 +45,8 @@ setup(
     package_data={'': ['LICENSE']},
     package_dir={'off_django': 'off_django'},
     include_package_data=True,
-    install_requires=requires,
+    install_requires=install_requires,
+    dependency_links=dependency_links,
     license='Apache 2.0',
     zip_safe=False,
     classifiers=(
@@ -43,6 +56,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
     ),
+    test_suite='tests',
+    tests_require=tests_require,
     extras_require={
     },
 )

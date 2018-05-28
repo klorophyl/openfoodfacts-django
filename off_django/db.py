@@ -9,11 +9,7 @@ import time
 
 from tqdm import tqdm
 
-from django.conf import settings
-from django.db.models.loading import get_model
-
-from .models import OFFFood
-from .utils import download_file
+from .utils import download_file, get_off_model
 
 logger = logging.getLogger("django")
 
@@ -48,7 +44,7 @@ class DumpManager(object):
     def load_dump(self):
         """
         Download, parse and load latest dump in DB
-        /!\ ignore products with no 'code'
+        //!\\  ignore products with no 'code'
         """
 
         csv.field_size_limit(sys.maxsize)  # Necessary because OFF DB is so big
@@ -65,11 +61,7 @@ class DumpManager(object):
             entry_count = dump_file.read().count("\n")
             dump_file.seek(0)
 
-            # Load custom model if it exists
-            model = OFFFood
-            if hasattr(settings, "OFF_MODEL"):
-                splitted = settings.OFF_MODEL.split(".")
-                model = get_model(".".join(splitted[:-1]), splitted[-1])
+            model = get_off_model()
 
             # Preload last_modified values
             last_modified_map = dict(model.objects.all().values_list("code", "last_modified_t"))

@@ -7,10 +7,10 @@ import requests
 
 from tqdm import tqdm
 
+from django.apps import apps
 from django.conf import settings
 
-
-DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+from .models import OFFFood
 
 
 def download_file(url, filename):
@@ -29,3 +29,16 @@ def download_file(url, filename):
             outfile.write(chunk)
 
     return path
+
+
+def get_off_model():
+    """
+    Returns custom OFF model if it exists, else take defaul off_django OFFFood
+    """
+
+    model = OFFFood
+    if hasattr(settings, "OFF_MODEL"):
+        splitted = settings.OFF_MODEL.split(".")
+        model = apps.get_model(".".join(splitted[:-1]), splitted[-1])
+
+    return model
