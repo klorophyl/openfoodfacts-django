@@ -25,8 +25,11 @@ Data about food is of public interest and has to be open. The complete database 
 
 ## Installation
 
+Pip doesn't support git-backed dependency in a git-backed package. You'll have to install openfoodfacts-python manually.
+
 ```
-sudo pip install git+https://github.com/klorophyl/openfoodfacts-django
+sudo pip install git+https://github.com/openfoodfacts/openfoodfacts-python#egg=openfoodfacts==0.1
+sudo pip install git+https://github.com/klorophyl/openfoodfacts-django#egg=off_django==0.4
 ```
 
 or:
@@ -96,6 +99,31 @@ from off_django.db import DumpManager
 
 dump_manager = DumpManager()
 objects = dump_manager.load_last_dump()  # will load last open food facts dump (~1.5Go) in your database
+```
+
+
+## Facets
+
+These models have been implemented to represent OFF product facets :
+
+```
+OFFAdditive, OFFAllergen, OFFBrand, OFFCategory, OFFCountry, OFFIngredient, OFFLanguage,
+OFFPackaging, OFFPackagingCode, OFFPurchasePlace, OFFStore, OFFTrace, OFFState
+```
+
+They inherit all from `AbstractOFFFacet` abstract model.
+To populate your local database with a dump from OFF, use :
+
+```
+from off_django.models import AbstractOFFFacet
+AbstractOFFFacet.fetch_all_facets()
+```
+
+You can alternatively populate only one kind of facet with the following method :
+
+```
+from off_django.models import OFFAdditive
+OFFAdditive.update_with_off_db()
 ```
 
 

@@ -15,13 +15,14 @@ packages = [
 ]
 
 install_requires = [
-    "requests==2.18.4",
-    "tqdm==4.19.6",
+    "openfoodfacts",
+    "requests>=2.18.4",
+    "tqdm>=4.19.6",
     "django<2"      # Python 2.7
 ]
 
 dependency_links = [
-    "git+https://github.com/openfoodfacts/openfoodfacts-python"
+    "git+https://github.com/openfoodfacts/openfoodfacts-python.git@master#egg=openfoodfacts",
 ]
 
 tests_require = [

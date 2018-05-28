@@ -3,9 +3,12 @@
 
 import datetime
 import logging
+import openfoodfacts
+
+from tqdm import tqdm
 
 from django.core.exceptions import FieldDoesNotExist
-from django.db import models
+from django.db import models, transaction
 
 from .models_extensions import ListField
 from .settings import DATETIME_FORMAT
@@ -268,3 +271,213 @@ class OFFFood(AbstractOFFFood):
 
     class Meta:
         verbose_name = "OFFFood - Model for Open Food Facts food product"
+
+
+class AbstractOFFFacet(models.Model):
+    """
+    Abstract model to manage facets
+    Warning : field sameAs has been renamed same_as
+    """
+
+    facet_id = models.CharField(max_length=255, primary_key=True, db_index=True)
+    name_fr = models.TextField(default=None, null=True)
+    name_en = models.TextField(default=None, null=True)
+    products = models.IntegerField(default=None, null=True)
+    url = models.TextField(default=None, null=True)
+    same_as = ListField(default=None, null=True)
+
+    LOCALES = ["fr", "world"]
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def parse_api_fields(cls, data, locale, extra_fields={}):
+        """
+        Rename and delete fields
+
+        id -> facet_id
+        name -> name_XX with XX locale
+        """
+
+        locale = locale if locale != "world" else "en"
+
+        if "id" in data:
+            data["facet_id"] = data.get("id")
+            del data["id"]
+
+        if "name" in data:
+            data["name_%s" % locale] = data.get("name")
+            del data["name"]
+
+        if "sameAs" in data:
+            data["same_as"] = data.get("sameAs")
+            del data["sameAs"]
+
+        return data
+
+    @classmethod
+    def update_with_off_db(cls, fetch_function):
+        """
+        Fetch latest info from OFF and update local DB, to be called from
+        child class with datasets = {locale: data, ...}
+        """
+        datasets = {
+            locale: fetch_function(locale=locale)
+            for locale in cls.LOCALES
+        }
+
+        dump = {}
+        for locale, dataset in datasets.iteritems():
+            for data in dataset:
+                additive_info = cls.parse_api_fields(data, locale)
+                dump.setdefault(additive_info["facet_id"], {}).update(additive_info)
+
+        dump_ids = set(dump.keys())
+        existing_ids = set(list(cls.objects.values_list("facet_id", flat=True)))
+
+        to_create = dump_ids - existing_ids
+        to_update = dump_ids - to_create
+        to_delete = existing_ids - dump_ids
+
+        with tqdm(total=len(to_create) + len(to_update), unit='it', unit_scale=True) as pbar:
+            with transaction.atomic():
+                cls.objects.filter(facet_id__in=to_delete).delete()
+
+                for facet_id in to_create:
+                    cls.objects.create(**dump.get(facet_id))
+                    pbar.update(1)
+                for facet_id in to_update:
+                    cls.objects.filter(facet_id=facet_id).update(**dump.get(facet_id))
+                    pbar.update(1)
+
+    @classmethod
+    def fetch_all_facets(cls):
+        MODELS = [
+            OFFAdditive, OFFAllergen, OFFBrand, OFFCategory, OFFCountry, OFFIngredient,
+            OFFLanguage, OFFPackaging, OFFPackagingCode, OFFPurchasePlace, OFFStore,
+            OFFTrace, OFFState
+        ]
+        for MODEL in MODELS:
+            logger.info("Fetching %s data" % MODEL.__name__)
+            MODEL.update_with_off_db()
+
+
+class OFFAdditive(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFAdditive - Model for Open Food Facts facet additive"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFAdditive, cls).update_with_off_db(openfoodfacts.facets.get_additives)
+
+
+class OFFAllergen(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFAllergen - Model for Open Food Facts facet allergen"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFAllergen, cls).update_with_off_db(openfoodfacts.facets.get_allergens)
+
+
+class OFFBrand(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFBrand - Model for Open Food Facts facet band"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFBrand, cls).update_with_off_db(openfoodfacts.facets.get_brands)
+
+
+class OFFCategory(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFCategory - Model for Open Food Facts facet category"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFCategory, cls).update_with_off_db(openfoodfacts.facets.get_categories)
+
+
+class OFFCountry(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFCountry - Model for Open Food Facts facet country"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFCountry, cls).update_with_off_db(openfoodfacts.facets.get_countries)
+
+
+class OFFIngredient(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFIngredient - Model for Open Food Facts facet ingredient"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFIngredient, cls).update_with_off_db(openfoodfacts.facets.get_ingredients)
+
+
+class OFFLanguage(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFLanguage - Model for Open Food Facts facet language"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFLanguage, cls).update_with_off_db(openfoodfacts.facets.get_languages)
+
+
+class OFFPackaging(AbstractOFFFacet):
+
+    image = models.TextField(default=None, null=True)
+
+    class Meta:
+        verbose_name = "OFFPackaging - Model for Open Food Facts facet packaging"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFPackaging, cls).update_with_off_db(openfoodfacts.facets.get_packaging)
+
+
+class OFFPackagingCode(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFPackagingCode - Model for Open Food Facts facet packaging code"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFPackagingCode, cls).update_with_off_db(openfoodfacts.facets.get_packaging_codes)
+
+
+class OFFPurchasePlace(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFPurchasePlace - Model for Open Food Facts facet purchase place"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFPurchasePlace, cls).update_with_off_db(openfoodfacts.facets.get_purchase_places)
+
+
+class OFFStore(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFStore - Model for Open Food Facts facet store"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFStore, cls).update_with_off_db(openfoodfacts.facets.get_stores)
+
+
+class OFFTrace(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFTrace - Model for Open Food Facts facet trace"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFTrace, cls).update_with_off_db(openfoodfacts.facets.get_traces)
+
+
+class OFFState(AbstractOFFFacet):
+    class Meta:
+        verbose_name = "OFFState - Model for Open Food Facts facet state"
+
+    @classmethod
+    def update_with_off_db(cls):
+        super(OFFState, cls).update_with_off_db(openfoodfacts.facets.get_states)
