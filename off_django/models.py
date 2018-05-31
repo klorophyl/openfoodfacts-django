@@ -12,6 +12,8 @@ from django.db import models, transaction
 
 from .models_extensions import ListField
 from .settings import DATETIME_FORMAT
+from .codes_to_country import CODES_TO_COUNTRY
+
 
 logger = logging.getLogger("django")
 
@@ -266,6 +268,18 @@ class AbstractOFFFood(models.Model):
 
         return instance
 
+    def guess_country(self):
+        prefix = self.code[:3]
+
+        for boundaries, country in CODES_TO_COUNTRY:
+            try:
+                code = int(prefix)
+            except Exception:
+                continue
+
+            if boundaries[0] <= code <= boundaries[1]:
+                return country
+
     def serialize_for_off_api(self):
         """
         Return (json compliant) dict representation of the object ready for post to OFF API
@@ -289,6 +303,9 @@ class AbstractOFFFood(models.Model):
 
         if getattr(self, "serving_quantity", 0) != 0:
             serialized["serving_size"] = "%sg" % getattr(self, "serving_quantity")
+
+        if getattr(self, "countries", []) != []:
+            serialized["countries"] = [self.guess_country() or ""]
 
         return serialized
 
