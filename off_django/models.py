@@ -266,6 +266,32 @@ class AbstractOFFFood(models.Model):
 
         return instance
 
+    def serialize_for_off_api(self):
+        """
+        Return (json compliant) dict representation of the object ready for post to OFF API
+        """
+
+        serialized = {}
+        for field in self._meta.get_fields():
+            if getattr(self, field.name) is None:
+                continue
+
+            key = field.name
+            if "_100g" in key:
+                key = ("nutriment_%s" % key.replace("_100g", "").replace("_", "-")).replace("_-", "_")
+
+            serialized[key] = getattr(self, field.name)
+
+            if "nutriment_" in key:
+                serialized["%s_unit" % key] = "kcal"
+
+        serialized["nutrition_data_per"] = "100g"
+
+        if getattr(self, "serving_quantity", 0) != 0:
+            serialized["serving_size"] = "%sg" % getattr(self, "serving_quantity")
+
+        return serialized
+
 
 class OFFFood(AbstractOFFFood):
 

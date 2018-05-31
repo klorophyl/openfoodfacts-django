@@ -127,6 +127,20 @@ OFFAdditive.update_with_off_db()
 ```
 
 
+## Posting products
+
+Use `OFFApiConnector` object to post products via OFF API.
+
+```
+from off_django.api import OFFApiConnector
+
+off_food = OFFFood(...)
+connector = OFFApiConnector(username=YOUR_USERNAME, password=YOUR_PASSWORD)
+connector.post_product(off_food)
+```
+
+__Warning__, this will fail silently if username/password is not known by OFF, see [OFF API docs](https://en.wiki.openfoodfacts.org/API/Write)
+
 ## Contributing
 
 The project is initially started by [Gabriel Samain](https://github.com/klorophyl)
