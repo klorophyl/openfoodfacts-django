@@ -10,13 +10,12 @@ class OFFApiConnector(object):
     """
 
     BASE_URL = "https://world.openfoodfacts.org/%s"
+    PRODUCT_URL = BASE_URL % "cgi/product_jqm2.pl"
+    IMAGE_UPLOAD_URL = BASE_URL % "cgi/product_image_upload.pl"
 
     def __init__(self, username, password):
-
         self.username = username
         self.password = password
-
-        self.PRODUCT_URL = self.BASE_URL % "cgi/product_jqm2.pl"
 
     def login(self):
         """
@@ -40,3 +39,20 @@ class OFFApiConnector(object):
         payload.update(off_food.serialize_for_off_api())
 
         requests.post(self.PRODUCT_URL, data=payload)
+
+    def upload_image(self, code, img_file, img_field="other"):
+        """
+        Upload an image to openfoodfacts
+
+        img_field in ['front', 'ingredients', 'nutrition', 'other']
+        """
+        requests.post(
+            self.IMAGE_UPLOAD_URL,
+            data={
+                "user_id": self.OFF_USERNAME,
+                "password": self.OFF_PASSWORD,
+                "code": code,
+                "imagefield": img_field
+            },
+            files={"imgupload_%s" % img_field: img_file}
+        )

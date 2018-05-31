@@ -139,7 +139,26 @@ connector = OFFApiConnector(username=YOUR_USERNAME, password=YOUR_PASSWORD)
 connector.post_product(off_food)
 ```
 
-__Warning__, this will fail silently if username/password is not known by OFF, see [OFF API docs](https://en.wiki.openfoodfacts.org/API/Write)
+It will guess the country for you if you don't fill the field in OFFFood.
+
+__Warning__ this will fail silently if username/password is not known by OFF, see [OFF API docs](https://en.wiki.openfoodfacts.org/API/Write)
+
+
+## Uploading images
+
+Use `OFFApiConnector` object to upload your images to OFF.
+img_field must be in `['front', 'ingredients', 'nutrition', 'other']`
+
+```
+from off_django.api import OFFApiConnector
+
+connector = OFFApiConnector(username=YOUR_USERNAME, password=YOUR_PASSWORD)
+
+with open(path_to_file, "r") as img_file:
+    connector.upload_image(barcode, img_file, img_field="front")
+```
+
+__Warning__ this will fail silently, see [OFF API docs](https://en.wiki.openfoodfacts.org/API/Write)
 
 ## Contributing
 

@@ -301,11 +301,15 @@ class AbstractOFFFood(models.Model):
 
         serialized["nutrition_data_per"] = "100g"
 
-        if getattr(self, "serving_quantity", 0) != 0:
+        # update serving_size with serving_quantity real value if exists
+        if (getattr(self, "serving_quantity") or 0) != 0:
             serialized["serving_size"] = "%sg" % getattr(self, "serving_quantity")
 
-        if getattr(self, "countries", []) != []:
-            serialized["countries"] = [self.guess_country() or ""]
+        # Fill country if not already here
+        if "countries" not in serialized and (getattr(self, "countries") or []) != []:
+            country = self.guess_country()
+            if country is not None:
+                serialized["countries"] = [country]
 
         return serialized
 
