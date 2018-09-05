@@ -23,7 +23,7 @@ def download_file(url, filename):
     total_size = int(response.headers.get('content-length', 0))
 
     path = os.path.join(settings.OFF_TMP_FOLDER_PATH, filename)
-    with open(path, "w") as outfile:
+    with open(path, "wb") as outfile:
         iterator = tqdm(response.iter_content(block_size), total=math.ceil(total_size // block_size), unit='KB', unit_scale=True)
         for chunk in iterator:
             outfile.write(chunk)

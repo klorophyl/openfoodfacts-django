@@ -57,7 +57,7 @@ class DumpManager(object):
             logger.error("[openfoodfacts] - An error occurred during dump download")
             return
 
-        with open(dump_path, "rU") as dump_file:
+        with open(dump_path, "r") as dump_file:
             entry_count = dump_file.read().count("\n")
             dump_file.seek(0)
 
