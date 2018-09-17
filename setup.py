@@ -29,7 +29,7 @@ tests_require = [
     "mock==2.0.0"
 ]
 
-version = "0.6"
+version = "0.7"
 
 with open('README.md', 'r') as f:
     readme = f.read()

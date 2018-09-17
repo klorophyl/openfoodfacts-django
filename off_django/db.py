@@ -49,6 +49,10 @@ class DumpManager(object):
 
         csv.field_size_limit(sys.maxsize)  # Necessary because OFF DB is so big
 
+        all_count = 0
+        new_count = 0
+        upd_count = 0
+
         # Download CSV
         try:
             dump_path = self.download_dump()
@@ -58,7 +62,6 @@ class DumpManager(object):
             return
 
         with open(dump_path, "r") as dump_file:
-            entry_count = dump_file.read().count("\n")
             dump_file.seek(0)
 
             model = get_off_model()
@@ -67,17 +70,23 @@ class DumpManager(object):
             last_modified_map = dict(model.objects.all().values_list("code", "last_modified_t"))
 
             # Parse CSV
-            reader = self.get_csv_reader(dump_file)
-            iterator = tqdm(reader, total=entry_count, unit='it', unit_scale=True)
-            for entry in iterator:
+            for entry in self.get_csv_reader(dump_file):
                 code = entry.get("code", "")
                 if code == "":
                     continue
 
+                all_count += 1
+
                 saved_last_modified = last_modified_map.get(code)
                 if saved_last_modified is None:
                     model.load(entry, create=True)
+                    new_count += 1
                 elif int(entry.get("last_modified_t")) > saved_last_modified:
                     model.load(entry)
+                    upd_count += 1
+
+                if all_count != 0 and all_count % 50000 == 0:
+                    logger.info("[openfoodfacts] - %s products parsed, %s created, %s updated" % (all_count, new_count, upd_count))
 
         os.remove(dump_path)
+        logger.info("[openfoodfacts] - load_dump done")
