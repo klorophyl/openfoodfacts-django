@@ -49,8 +49,8 @@ class OFFApiConnector(object):
         requests.post(
             self.IMAGE_UPLOAD_URL,
             data={
-                "user_id": self.OFF_USERNAME,
-                "password": self.OFF_PASSWORD,
+                "user_id": self.username,
+                "password": self.password,
                 "code": code,
                 "imagefield": img_field
             },
