@@ -7,8 +7,6 @@ import os
 import sys
 import time
 
-from tqdm import tqdm
-
 from .utils import download_file, get_off_model
 
 logger = logging.getLogger("django")

@@ -94,6 +94,7 @@ class AbstractOFFFood(models.Model):
     no_nutriments = models.TextField(default=None, null=True)
     nutrition_grade_fr = models.CharField(max_length=1, default=None, null=True)
     nutrition_grade_uk = models.CharField(max_length=1, default=None, null=True)
+    nova_group = models.IntegerField(default=None, null=True)
     pnns_groups_1 = models.TextField(default=None, null=True)
     pnns_groups_2 = models.TextField(default=None, null=True)
     serving_size = models.TextField(default=None, null=True)
@@ -224,6 +225,7 @@ class AbstractOFFFood(models.Model):
                 field_class = cls._meta.get_field(django_field).__class__
             except FieldDoesNotExist:
                 logger.info("A field has been added in Open Food facts and not in off_django : %s" % field)
+                continue
 
             if value == "":
                 value = None
@@ -306,7 +308,7 @@ class AbstractOFFFood(models.Model):
             serialized["serving_size"] = "%sg" % getattr(self, "serving_quantity")
 
         # Fill country if not already here
-        if "countries" not in serialized and (getattr(self, "countries") or []) != []:
+        if "countries" not in serialized and (getattr(self, "countries") or []) == []:
             country = self.guess_country()
             if country is not None:
                 serialized["countries"] = [country]
