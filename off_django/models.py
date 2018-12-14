@@ -299,9 +299,10 @@ class AbstractOFFFood(models.Model):
             serialized[key] = getattr(self, field.name)
 
             if "nutriment_" in key:
-                serialized["%s_unit" % key] = "kcal"
+                serialized["%s_unit" % key] = "kcal" if "energy" in key else "g"
 
         serialized["nutrition_data_per"] = "100g"
+        serialized["energy_unit"] = "kcal"
 
         # update serving_size with serving_quantity real value if exists
         if (getattr(self, "serving_quantity") or 0) != 0:
