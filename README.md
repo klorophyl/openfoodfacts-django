@@ -42,7 +42,7 @@ sudo python setup.py install
 
 ### Dependencies
 
-`off_django` was developped under Python 2.7, Python 3 may work but is not currently supported.
+`off_django` was developped under Python 3
 
 Installing` off_django` will install [openfoodfacts-python](https://github.com/openfoodfacts/openfoodfacts-python) as a dependency and use it as an API connector, check this repo for advanced API usage.
 

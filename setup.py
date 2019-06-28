@@ -18,7 +18,7 @@ install_requires = [
     "openfoodfacts",
     "requests>=2.18.4",
     "tqdm>=4.19.6",
-    "django<2"      # Python 2.7
+    "django>=2.0.11"
 ]
 
 dependency_links = [
@@ -29,7 +29,7 @@ tests_require = [
     "mock==2.0.0"
 ]
 
-version = "0.9"
+version = "0.10"
 
 with open('README.md', 'r') as f:
     readme = f.read()
