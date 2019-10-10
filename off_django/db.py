@@ -50,6 +50,7 @@ class DumpManager(object):
         all_count = 0
         new_count = 0
         upd_count = 0
+        err_count = 0
 
         # Download CSV
         try:
@@ -76,15 +77,20 @@ class DumpManager(object):
                 all_count += 1
 
                 saved_last_modified = last_modified_map.get(code)
-                if saved_last_modified is None:
-                    model.load(entry, create=True)
-                    new_count += 1
-                elif int(entry.get("last_modified_t")) > saved_last_modified:
-                    model.load(entry)
-                    upd_count += 1
+                try:
+                    if saved_last_modified is None:
+                        model.load(entry, create=True)
+                        new_count += 1
+                    elif int(entry.get("last_modified_t")) > saved_last_modified:
+                        model.load(entry)
+                        upd_count += 1
+                except Exception as e:
+                    logger.exception(e)
+                    err_count += 1
+                    continue
 
                 if all_count != 0 and all_count % 50000 == 0:
-                    logger.info("[openfoodfacts] - %s products parsed, %s created, %s updated" % (all_count, new_count, upd_count))
+                    logger.info("[openfoodfacts] - %s products parsed, %s created, %s updated, %s errors" % (all_count, new_count, upd_count, err_count))
 
         os.remove(dump_path)
         logger.info("[openfoodfacts] - load_dump done")
