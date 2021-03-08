@@ -21,7 +21,7 @@ class ListField(models.TextField):
 
         return ast.literal_eval(value)
 
-    def from_db_value(self, value, expression, connection, context):
+    def from_db_value(self, value, expression, connection, *args, **kwargs):
         return self.to_python(value)
 
     def get_prep_value(self, value):
